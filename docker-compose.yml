@@ -1,0 +1,41 @@
+# Local demo stack. JWT_SECRET below is a local-dev placeholder only.
+# Replace it before this stack is shared or deployed anywhere else.
+
+services:
+  backend:
+    build: ./task-backend
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_PATH: /app/data/app.db
+      # LOCAL DEV ONLY. Not a production secret.
+      JWT_SECRET: local-dev-only-not-for-production-qi-tracker-secret
+      JWT_EXPIRES_IN: 8h
+      # Same-origin via nginx, so the browser does not need CORS. Set anyway.
+      CORS_ORIGIN: http://localhost:8080
+      LOG_LEVEL: info
+    volumes:
+      - sqlite-data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  frontend:
+    build: ./task-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  sqlite-data:
