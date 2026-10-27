@@ -1,4 +1,6 @@
 import {
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SIZE,
   DEFAULT_SORT_BY,
   DEFAULT_SORT_ORDER,
   SEVERITIES,
@@ -16,6 +18,8 @@ export const DEFAULT_FILTERS: InspectionFilters = {
   to: undefined,
   sortBy: DEFAULT_SORT_BY,
   order: DEFAULT_SORT_ORDER,
+  page: DEFAULT_PAGE,
+  limit: DEFAULT_PAGE_SIZE,
 }
 
 /** Keeps only known values, deduped, in canonical enum order (stable query keys). */
@@ -51,6 +55,15 @@ function parseDate(raw: string | null): string | undefined {
   return Number.isNaN(Date.parse(raw)) ? undefined : raw
 }
 
+function parsePositiveInt(
+  raw: string | null,
+  fallback: number,
+): number {
+  if (!raw) return fallback
+  const parsed = parseInt(raw, 10)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+}
+
 export function parseInspectionFilters(
   params: URLSearchParams,
 ): InspectionFilters {
@@ -61,6 +74,8 @@ export function parseInspectionFilters(
     to: parseDate(params.get('to')),
     sortBy: parseOne(params.get('sortBy'), SORT_FIELDS, DEFAULT_SORT_BY),
     order: parseOne(params.get('order'), SORT_ORDERS, DEFAULT_SORT_ORDER),
+    page: parsePositiveInt(params.get('page'), DEFAULT_PAGE),
+    limit: parsePositiveInt(params.get('limit'), DEFAULT_PAGE_SIZE),
   }
 }
 
@@ -77,6 +92,10 @@ export function serializeInspectionFilters(
   if (filters.to) params.set('to', filters.to)
   if (filters.sortBy !== DEFAULT_SORT_BY) params.set('sortBy', filters.sortBy)
   if (filters.order !== DEFAULT_SORT_ORDER) params.set('order', filters.order)
+  if (filters.page && filters.page > 1) params.set('page', String(filters.page))
+  if (filters.limit && filters.limit !== DEFAULT_PAGE_SIZE) {
+    params.set('limit', String(filters.limit))
+  }
   return params
 }
 

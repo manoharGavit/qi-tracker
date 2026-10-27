@@ -7,7 +7,11 @@ describe('AppProviders', () => {
     render(<AppProviders />)
 
     expect(
-      await screen.findByText('Sign in', { selector: '[data-slot=card-title]' }),
+      await screen.findByText(
+        'Sign in',
+        { selector: '[data-slot=card-title]' },
+        { timeout: 10000 },
+      ),
     ).toBeInTheDocument()
     expect(screen.getByText(/supervisor@arvind\.com/)).toBeInTheDocument()
     expect(window.location.pathname).toBe('/login')

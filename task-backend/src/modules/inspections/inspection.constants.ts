@@ -31,3 +31,7 @@ export const MACHINE_ID_MAX_LENGTH = 50;
 export const REMARKS_MAX_LENGTH = 1000;
 export const RESOLUTION_NOTE_MIN_LENGTH = 3;
 export const RESOLUTION_NOTE_MAX_LENGTH = 500;
+
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_LIMIT = 20;
+export const MAX_LIMIT = 100;

@@ -165,13 +165,114 @@ describe("GET /api/inspections (filters and sorting)", () => {
 		expect(machineIds(await list("?sortBy=createdAt"))).toEqual(["D", "C", "B", "A"]);
 	});
 
+	it("paginates with page and limit", async () => {
+		const resPage1 = await ctx.authed.get("/api/inspections?page=1&limit=2").expect(200);
+		const data1 = dataOf<{
+			items: Inspection[];
+			pagination: {
+				page: number;
+				limit: number;
+				total: number;
+				totalPages: number;
+				hasNextPage: boolean;
+				hasPrevPage: boolean;
+			};
+		}>(resPage1);
+		expect(machineIds(data1.items)).toEqual(["D", "C"]);
+		expect(data1.pagination).toEqual({
+			page: 1,
+			limit: 2,
+			total: 4,
+			totalPages: 2,
+			hasNextPage: true,
+			hasPrevPage: false
+		});
+
+		const resPage2 = await ctx.authed.get("/api/inspections?page=2&limit=2").expect(200);
+		const data2 = dataOf<{
+			items: Inspection[];
+			pagination: {
+				page: number;
+				limit: number;
+				total: number;
+				totalPages: number;
+				hasNextPage: boolean;
+				hasPrevPage: boolean;
+			};
+		}>(resPage2);
+		expect(machineIds(data2.items)).toEqual(["B", "A"]);
+		expect(data2.pagination).toEqual({
+			page: 2,
+			limit: 2,
+			total: 4,
+			totalPages: 2,
+			hasNextPage: false,
+			hasPrevPage: true
+		});
+	});
+
+	it("combines pagination with filtering and sorting", async () => {
+		const res = await ctx.authed
+			.get("/api/inspections?status=Open&sortBy=inspectionDate&order=asc&page=1&limit=2")
+			.expect(200);
+		const data = dataOf<{
+			items: Inspection[];
+			pagination: {
+				page: number;
+				limit: number;
+				total: number;
+				totalPages: number;
+				hasNextPage: boolean;
+				hasPrevPage: boolean;
+			};
+		}>(res);
+		// Open inspections are A (2026-10-01), B (2026-10-05), C (2026-10-10)
+		expect(machineIds(data.items)).toEqual(["A", "B"]);
+		expect(data.pagination).toEqual({
+			page: 1,
+			limit: 2,
+			total: 3,
+			totalPages: 2,
+			hasNextPage: true,
+			hasPrevPage: false
+		});
+	});
+
+	it("returns empty items when page exceeds total pages", async () => {
+		const res = await ctx.authed.get("/api/inspections?page=99&limit=10").expect(200);
+		const data = dataOf<{
+			items: Inspection[];
+			pagination: {
+				page: number;
+				limit: number;
+				total: number;
+				totalPages: number;
+				hasNextPage: boolean;
+				hasPrevPage: boolean;
+			};
+		}>(res);
+		expect(data.items).toEqual([]);
+		expect(data.pagination).toEqual({
+			page: 99,
+			limit: 10,
+			total: 4,
+			totalPages: 1,
+			hasNextPage: false,
+			hasPrevPage: true
+		});
+	});
+
 	it.each([
 		["unknown severity", "?severity=Critical,Huge", "severity.1"],
 		["unknown status", "?status=Closed", "status.0"],
 		["bad from date", "?from=2026-13-01", "from"],
 		["from after to", "?from=2026-10-10&to=2026-10-01", "from"],
 		["unknown sortBy", "?sortBy=machineId", "sortBy"],
-		["unknown order", "?order=sideways", "order"]
+		["unknown order", "?order=sideways", "order"],
+		["invalid page 0", "?page=0", "page"],
+		["invalid page negative", "?page=-5", "page"],
+		["invalid limit 0", "?limit=0", "limit"],
+		["limit exceeding max", "?limit=101", "limit"]
 	])("returns 422 for %s", async (_label, query, path) => {
 		const res = await ctx.authed.get(`/api/inspections${query}`).expect(422);
 		const error = errorOf(res);

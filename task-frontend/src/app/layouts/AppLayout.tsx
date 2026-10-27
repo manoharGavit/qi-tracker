@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import { LogOutIcon } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { NAV_ITEMS, type NavItem } from '@/app/layouts/navItems'
 import { useAuth } from '@/features/auth/context/authContext'
 import { BrandMark } from '@/shared/components/BrandMark'
+import { PageLoader } from '@/shared/components/PageLoader'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 
@@ -55,7 +57,9 @@ export function AppLayout() {
         </header>
 
         <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-4 pb-[calc(var(--spacing-tabbar)+env(safe-area-inset-bottom)+1.5rem)] md:px-8 md:pt-8 md:pb-10">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 
@@ -83,7 +87,7 @@ function SideNavLink({ item }: { item: NavItem }) {
       end
       className={({ isActive }) =>
         cn(
-          'flex h-control items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+          'flex h-control items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer',
           isActive && 'bg-secondary text-secondary-foreground',
         )
       }
@@ -103,7 +107,7 @@ function TabBarLink({ item }: { item: NavItem }) {
         to={item.to}
         end
         aria-label="New inspection"
-        className="flex flex-1 flex-col items-center justify-center"
+        className="flex flex-1 flex-col items-center justify-center cursor-pointer"
       >
         <span className="flex size-control-lg -translate-y-3 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95">
           <Icon className="size-6" aria-hidden />
@@ -118,7 +122,7 @@ function TabBarLink({ item }: { item: NavItem }) {
       end
       className={({ isActive }) =>
         cn(
-          'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground transition-colors',
+          'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground transition-colors cursor-pointer',
           isActive && 'text-primary',
         )
       }

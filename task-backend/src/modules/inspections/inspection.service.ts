@@ -4,6 +4,7 @@ import type {
 	Inspection,
 	InspectionFilters,
 	InspectionRepository,
+	PaginatedResult,
 	SeverityStatusCount
 } from "./inspection.repository.js";
 import type { CreateInspectionBody } from "./inspection.schema.js";
@@ -12,6 +13,7 @@ export type SummaryRow = SeverityStatusCount;
 
 export interface InspectionService {
 	list(filters: InspectionFilters): Inspection[];
+	listPaginated(filters: InspectionFilters): PaginatedResult<Inspection>;
 	getById(id: string): Inspection;
 	create(input: CreateInspectionBody, createdBy: string): Inspection;
 	resolve(id: string, resolutionNote: string): Inspection;
@@ -36,6 +38,8 @@ export function createInspectionService(
 
 	return {
 		list: (filters) => repository.list(filters),
+
+		listPaginated: (filters) => repository.listPaginated(filters),
 
 		getById,
 

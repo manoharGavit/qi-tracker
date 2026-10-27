@@ -28,6 +28,10 @@ export const REMARKS_MAX_LENGTH = 1000
 export const RESOLUTION_NOTE_MIN_LENGTH = 3
 export const RESOLUTION_NOTE_MAX_LENGTH = 500
 
+export const DEFAULT_PAGE = 1
+export const DEFAULT_PAGE_SIZE = 20
+export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
+
 export const DEFECT_TYPE_OPTIONS = DEFECT_TYPES.map((value) => ({
   value,
   label: value,

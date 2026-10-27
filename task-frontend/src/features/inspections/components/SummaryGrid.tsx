@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { ChevronRightIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { SeverityBadge } from '@/features/inspections/components/SeverityBadge'
@@ -19,13 +20,17 @@ function listHref(row: SummaryRow): string {
 }
 
 export function SummaryGrid({ rows }: { rows: SummaryRow[] }) {
-  const totals = rows.reduce(
-    (acc, row) => ({
-      open: acc.open + row.open,
-      resolved: acc.resolved + row.resolved,
-      total: acc.total + row.total,
-    }),
-    { open: 0, resolved: 0, total: 0 },
+  const totals = useMemo(
+    () =>
+      rows.reduce(
+        (acc, row) => ({
+          open: acc.open + row.open,
+          resolved: acc.resolved + row.resolved,
+          total: acc.total + row.total,
+        }),
+        { open: 0, resolved: 0, total: 0 },
+      ),
+    [rows],
   )
 
   return (
@@ -47,7 +52,7 @@ export function SummaryGrid({ rows }: { rows: SummaryRow[] }) {
             <li key={row.severity}>
               <Link
                 to={listHref(row)}
-                className="flex flex-col gap-4 rounded-xl bg-card p-4 ring-1 ring-foreground/10 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="flex flex-col gap-4 rounded-xl bg-card p-4 ring-1 ring-foreground/10 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <SeverityBadge severity={row.severity} />

@@ -17,7 +17,11 @@ export function createInspectionController(service: InspectionService) {
 		req,
 		res
 	) => {
-		sendSuccess(res, service.list(req.query));
+		if (req.query.page !== undefined || req.query.limit !== undefined) {
+			sendSuccess(res, service.listPaginated(req.query));
+		} else {
+			sendSuccess(res, service.list(req.query));
+		}
 	};
 
 	const create: RequestHandler<ParamsDictionary, unknown, CreateInspectionBody> = (req, res) => {

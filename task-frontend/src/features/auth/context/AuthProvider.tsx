@@ -1,4 +1,4 @@
-import { useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { authApi, authKeys } from '@/features/auth/api/authApi'
 import {
@@ -25,19 +25,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
   })
 
-  const value: AuthContextValue = {
-    user: isAuthenticated ? (meQuery.data ?? session?.user ?? null) : null,
-    isAuthenticated,
-    login: async (credentials) => {
+  const user = isAuthenticated ? (meQuery.data ?? session?.user ?? null) : null
+
+  const login = useCallback(
+    async (credentials: Parameters<typeof authApi.login>[0]) => {
       const next = await authApi.login(credentials)
       queryClient.setQueryData(authKeys.me, next.user)
       sessionStore.set(next)
     },
-    logout: () => {
-      sessionStore.clear()
-      queryClient.clear()
-    },
-  }
+    [queryClient],
+  )
+
+  const logout = useCallback(() => {
+    sessionStore.clear()
+    queryClient.clear()
+  }, [queryClient])
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      isAuthenticated,
+      login,
+      logout,
+    }),
+    [user, isAuthenticated, login, logout],
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

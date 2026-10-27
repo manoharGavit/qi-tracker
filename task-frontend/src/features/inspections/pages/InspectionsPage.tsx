@@ -2,6 +2,7 @@ import { ClipboardListIcon, PlusIcon, SearchXIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { InspectionFilters } from '@/features/inspections/components/InspectionFilters'
 import { InspectionList } from '@/features/inspections/components/InspectionList'
+import { InspectionPagination } from '@/features/inspections/components/InspectionPagination'
 import { SortMenu } from '@/features/inspections/components/SortMenu'
 import { useInspectionFilters } from '@/features/inspections/hooks/useInspectionFilters'
 import { useInspections } from '@/features/inspections/hooks/useInspections'
@@ -10,20 +11,24 @@ import { ErrorState } from '@/shared/components/ErrorState'
 import { LoadingList } from '@/shared/components/LoadingList'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { Button } from '@/shared/components/ui/button'
+import type { Inspection } from '@/features/inspections/types'
+
+const EMPTY_INSPECTIONS: Inspection[] = []
 
 export function InspectionsPage() {
   const { filters, setFilters, clearFilters, activeFilterCount } =
     useInspectionFilters()
   const query = useInspections(filters)
-  const inspections = query.data ?? []
+  const items = query.data?.items ?? EMPTY_INSPECTIONS
+  const pagination = query.data?.pagination
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Inspections"
         description={
-          query.isSuccess
-            ? `${inspections.length} ${inspections.length === 1 ? 'record' : 'records'}${activeFilterCount > 0 ? ' matching filters' : ''}`
+          query.isSuccess && pagination
+            ? `${pagination.total} ${pagination.total === 1 ? 'record' : 'records'}${activeFilterCount > 0 ? ' matching filters' : ''}${pagination.totalPages > 1 ? ` · Page ${pagination.page} of ${pagination.totalPages}` : ''}`
             : 'Fabric defects logged on the floor'
         }
         actions={
@@ -59,7 +64,7 @@ export function InspectionsPage() {
             title="Could not load inspections"
             onRetry={() => void query.refetch()}
           />
-        ) : inspections.length === 0 ? (
+        ) : items.length === 0 ? (
           activeFilterCount > 0 ? (
             <EmptyState
               icon={SearchXIcon}
@@ -87,7 +92,19 @@ export function InspectionsPage() {
             />
           )
         ) : (
-          <InspectionList inspections={inspections} />
+          <div className="flex flex-col gap-4">
+            <InspectionList inspections={items} />
+            {pagination ? (
+              <InspectionPagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                limit={pagination.limit}
+                onPageChange={(page) => setFilters({ page })}
+                onPageSizeChange={(limit) => setFilters({ limit, page: 1 })}
+              />
+            ) : null}
+          </div>
         )}
       </div>
     </div>

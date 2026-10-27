@@ -39,13 +39,23 @@ describe('parseInspectionFilters', () => {
       to: '2026-01-31',
       sortBy: 'severity',
       order: 'asc',
+      page: 1,
+      limit: 20,
     })
+  })
+
+  it('parses custom page and limit query params', () => {
+    const filters = parseInspectionFilters(
+      new URLSearchParams('page=3&limit=50'),
+    )
+    expect(filters.page).toBe(3)
+    expect(filters.limit).toBe(50)
   })
 
   it('drops unknown values, duplicates and malformed dates', () => {
     const filters = parseInspectionFilters(
       new URLSearchParams(
-        'severity=Minor,Bogus,Minor&status=Closed&from=01/02/2026&to=2026-13-45&sortBy=machineId&order=sideways',
+        'severity=Minor,Bogus,Minor&status=Closed&from=01/02/2026&to=2026-13-45&sortBy=machineId&order=sideways&page=-2&limit=0',
       ),
     )
     expect(filters).toEqual({
@@ -79,7 +89,19 @@ describe('serializeInspectionFilters', () => {
       to: undefined,
       sortBy: 'createdAt',
       order: 'asc',
+      page: 1,
+      limit: 20,
     })
+  })
+
+  it('serializes page and limit when different from defaults', () => {
+    const params = serializeInspectionFilters({
+      ...DEFAULT_FILTERS,
+      page: 4,
+      limit: 50,
+    })
+    expect(params.get('page')).toBe('4')
+    expect(params.get('limit')).toBe('50')
   })
 })
 
@@ -109,7 +131,7 @@ describe('useInspectionFilters', () => {
 
   it('clearFilters removes filters but keeps the chosen sort', () => {
     const { result } = renderFilters(
-      '/inspections?severity=Minor&status=Resolved&to=2026-03-01&sortBy=createdAt&order=asc',
+      '/inspections?severity=Minor&status=Resolved&to=2026-03-01&sortBy=createdAt&order=asc&page=3',
     )
 
     act(() => {
@@ -118,5 +140,25 @@ describe('useInspectionFilters', () => {
 
     expect(result.current.location.search).toBe('?sortBy=createdAt&order=asc')
     expect(result.current.activeFilterCount).toBe(0)
+    expect(result.current.filters.page).toBe(1)
+  })
+
+  it('updates page and limit, and resets page when changing filters', () => {
+    const { result } = renderFilters('/inspections?page=3&limit=50')
+    expect(result.current.filters.page).toBe(3)
+    expect(result.current.filters.limit).toBe(50)
+
+    act(() => {
+      result.current.setPage(4)
+    })
+    expect(new URLSearchParams(result.current.location.search).get('page')).toBe('4')
+
+    act(() => {
+      result.current.setFilters({ status: ['Open'] })
+    })
+    // Page resets to 1 when changing filters, so page param is omitted from URL
+    expect(new URLSearchParams(result.current.location.search).get('page')).toBeNull()
+    expect(result.current.filters.page).toBe(1)
+    expect(result.current.filters.status).toEqual(['Open'])
   })
 })

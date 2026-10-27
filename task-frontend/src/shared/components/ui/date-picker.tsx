@@ -138,7 +138,7 @@ export function DatePicker({
                 role="button"
                 tabIndex={0}
                 aria-label="Clear date"
-                className="ml-auto inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="ml-auto inline-flex size-5 cursor-pointer items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                 onClick={(e) => {
                   e.stopPropagation()
                   onChange?.('')

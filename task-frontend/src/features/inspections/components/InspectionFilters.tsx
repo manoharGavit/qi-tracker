@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useCallback, useId, useState } from 'react'
 import { SlidersHorizontalIcon } from 'lucide-react'
 import {
   SEVERITIES,
@@ -28,6 +28,14 @@ export function InspectionFilters({ filters, onApply }: InspectionFiltersProps) 
   const [open, setOpen] = useState(false)
   const activeCount = countActiveFilters(filters)
 
+  const handleApply = useCallback(
+    (patch: FilterPatch) => {
+      onApply(patch)
+      setOpen(false)
+    },
+    [onApply],
+  )
+
   return (
     <>
       <Button
@@ -51,13 +59,7 @@ export function InspectionFilters({ filters, onApply }: InspectionFiltersProps) 
         title="Filter inspections"
         description="Narrow the list by severity, status and inspection date."
       >
-        <FiltersPanel
-          initial={filters}
-          onApply={(patch) => {
-            onApply(patch)
-            setOpen(false)
-          }}
-        />
+        <FiltersPanel initial={filters} onApply={handleApply} />
       </ResponsiveModal>
     </>
   )

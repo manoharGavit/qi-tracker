@@ -28,6 +28,22 @@ export type InspectionFilters = {
   to?: string
   sortBy: SortField
   order: SortOrder
+  page?: number
+  limit?: number
+}
+
+export type PaginationMeta = {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
+export type PaginatedData<T> = {
+  items: T[]
+  pagination: PaginationMeta
 }
 
 export type SummaryRow = {

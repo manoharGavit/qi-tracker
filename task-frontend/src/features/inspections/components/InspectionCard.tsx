@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { CalendarIcon, CheckIcon } from 'lucide-react'
 import { SeverityBadge } from '@/features/inspections/components/SeverityBadge'
 import { StatusBadge } from '@/features/inspections/components/StatusBadge'
@@ -10,13 +11,16 @@ type InspectionCardProps = {
   onResolve: (inspection: Inspection) => void
 }
 
-export function InspectionCard({ inspection, onResolve }: InspectionCardProps) {
+export const InspectionCard = memo(function InspectionCard({
+  inspection,
+  onResolve,
+}: InspectionCardProps) {
   const isOpen = inspection.status === 'Open'
 
   return (
     <article
       aria-labelledby={`inspection-${inspection.id}-title`}
-      className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10 [contain-intrinsic-size:auto_11rem] [content-visibility:auto]"
+      className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -72,4 +76,4 @@ export function InspectionCard({ inspection, onResolve }: InspectionCardProps) {
       ) : null}
     </article>
   )
-}
+})

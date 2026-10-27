@@ -4,6 +4,7 @@ import { isIsoDate } from "../../shared/dates.js";
 import {
 	DEFECT_TYPES,
 	MACHINE_ID_MAX_LENGTH,
+	MAX_LIMIT,
 	REMARKS_MAX_LENGTH,
 	RESOLUTION_NOTE_MAX_LENGTH,
 	RESOLUTION_NOTE_MIN_LENGTH,
@@ -77,7 +78,14 @@ export const listInspectionsQuerySchema = z
 		sortBy: z
 			.enum(SORT_FIELDS, { error: enumMessage("sortBy", SORT_FIELDS) })
 			.default("inspectionDate"),
-		order: z.enum(SORT_ORDERS, { error: enumMessage("order", SORT_ORDERS) }).default("desc")
+		order: z.enum(SORT_ORDERS, { error: enumMessage("order", SORT_ORDERS) }).default("desc"),
+		page: z.coerce.number().int("page must be an integer").min(1, "page must be at least 1").optional(),
+		limit: z.coerce
+			.number()
+			.int("limit must be an integer")
+			.min(1, "limit must be at least 1")
+			.max(MAX_LIMIT, `limit must be at most ${MAX_LIMIT}`)
+			.optional()
 	})
 	.refine((query) => !query.from || !query.to || query.from <= query.to, {
 		message: "from must be on or before to",
